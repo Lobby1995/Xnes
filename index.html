@@ -91,6 +91,15 @@
   .amount-wrap input { background: transparent; border: none; color: var(--text); font-family: var(--font-mono); font-size: 18px; font-weight: 600; width: 140px; outline: none; text-align: left; }
 
   .table-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table.my-table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: 12.5px; }
+  table.my-table th { text-align: center; font-weight: 600; color: var(--text-muted); font-size: 11px; padding: 10px 6px; border-bottom: 1px solid var(--border); background: var(--panel-2); white-space: nowrap; }
+  table.my-table th:first-child { text-align: start; padding-inline-start: 14px; }
+  table.my-table td { padding: 10px 6px; text-align: center; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.my-table td:first-child { text-align: start; padding-inline-start: 14px; font-weight: 600; }
+  table.my-table tr:last-child td { border-bottom: none; }
+  table.my-table input { width: 84px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--font-mono); font-size: 12px; text-align: center; padding: 5px 3px; direction: ltr; outline: none; }
+  .up { color: var(--good); } .down { color: var(--bad); }
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   thead th { text-align: center; font-weight: 600; color: var(--text-muted); font-size: 11.5px; padding: 12px 6px; border-bottom: 1px solid var(--border); background: var(--panel-2); }
   thead th:first-child { text-align: start; padding-inline-start: 16px; }
@@ -190,6 +199,30 @@
   </div>
 
   <section class="card">
+    <div class="live-head">
+      <h2>הטבלה שלי (בסגנון הברוקר)</h2>
+    </div>
+    <div class="table-scroll">
+      <table class="my-table">
+        <thead>
+          <tr>
+            <th>שם נייר</th><th>שער אחרון (₪)</th><th>כמות בתיק</th><th>שווי אחזקה (₪)</th>
+            <th>שינוי יומי %</th><th>שינוי יומי (₪)</th><th>שער עלות (₪)</th>
+            <th>שינוי מעלות %</th><th>שינוי מעלות (₪ ליחידה)</th><th>שינוי מעלות (₪)</th>
+            <th>נתח מהתיק</th><th>כמות מושאלת</th>
+          </tr>
+        </thead>
+        <tbody id="myTableBody"></tbody>
+      </table>
+    </div>
+    <p class="calib-note">
+      "שער אחרון" ו"שינוי יומי" לשלוש קרנות ה-iShares מגיעים מהמחיר המשוער החי (ראה פאנל הרענון למטה);
+      ל"מור סל ת"א-125" הם נשארים לפי מה שהזנת ידנית. "שער עלות" מוזן פעם אחת ונשמר - זה בדיוק המחיר
+      שהופיע בקובץ שהעלית בהתחלה, ואפשר לערוך אותו אם תקנה או תמכור בעתיד.
+    </p>
+  </section>
+
+  <section class="card">
     <div class="bar-row">
       <span class="bar-label">היום</span>
       <div class="bar-track" id="barNow"></div>
@@ -275,16 +308,16 @@
 
   const funds = [
     { id: 'sp', name: 'iShares Core S&P 500', ticker: '1159250', weight: 60, seg: 'seg-sp', color: 'var(--sp)',
-      value: 58006, qty: 23,
-      live: { tickerForeign: 'SXR8.DEX', currency: 'EUR', ratio: 1.00196, lastPrice: null, lastDay: null } },
+      value: 58006, qty: 23, costPrice: 2205.6135,
+      live: { tickerForeign: 'SXR8.DEX', currency: 'EUR', ratio: 1.00196, lastPrice: null, lastDay: null, changePercent: null, changeILS: null, estPrice: null } },
     { id: 'eu', name: 'iShares Core MSCI Europe', ticker: '1159094', weight: 25, seg: 'seg-eu', color: 'var(--eu)',
-      value: 21899, qty: 61,
-      live: { tickerForeign: 'CEBZ.DEX', currency: 'EUR', ratio: 15.287, lastPrice: null, lastDay: null } },
+      value: 21899, qty: 61, costPrice: 341.1051,
+      live: { tickerForeign: 'CEBZ.DEX', currency: 'EUR', ratio: 15.287, lastPrice: null, lastDay: null, changePercent: null, changeILS: null, estPrice: null } },
     { id: 'em', name: 'iShares Core MSCI EM IMI', ticker: '1159169', weight: 15, seg: 'seg-em', color: 'var(--em)',
-      value: 14288.5, qty: 85,
-      live: { tickerForeign: 'IBC3.DEX', currency: 'EUR', ratio: 7.560, lastPrice: null, lastDay: null } },
+      value: 14288.5, qty: 85, costPrice: 136.9906,
+      live: { tickerForeign: 'IBC3.DEX', currency: 'EUR', ratio: 7.560, lastPrice: null, lastDay: null, changePercent: null, changeILS: null, estPrice: null } },
     { id: 'ta125', name: 'מור סל ת"א-125', ticker: '1196153', weight: 0, seg: 'seg-other', color: 'var(--other)',
-      value: 1668, qty: 15, live: null },
+      value: 1668, qty: 15, costPrice: 117.90, live: null },
   ];
 
   const fmt = (n) => isFinite(n) ? Math.round(n).toLocaleString('en-US') : '0';
@@ -295,7 +328,7 @@
     try {
       const data = {
         apiKey: document.getElementById('apiKey').value,
-        funds: funds.map(f => ({ id: f.id, value: f.value, qty: f.qty, weight: f.weight,
+        funds: funds.map(f => ({ id: f.id, value: f.value, qty: f.qty, weight: f.weight, costPrice: f.costPrice,
           live: f.live ? { tickerForeign: f.live.tickerForeign, currency: f.live.currency, ratio: f.live.ratio } : null }))
       };
       localStorage.setItem(LS_KEY, JSON.stringify(data));
@@ -315,6 +348,7 @@
           if (isFinite(sf.value)) f.value = sf.value;
           if (isFinite(sf.qty)) f.qty = sf.qty;
           if (isFinite(sf.weight)) f.weight = sf.weight;
+          if (isFinite(sf.costPrice)) f.costPrice = sf.costPrice;
           if (f.live && sf.live) {
             f.live.tickerForeign = sf.live.tickerForeign || f.live.tickerForeign;
             f.live.currency = sf.live.currency || f.live.currency;
@@ -384,7 +418,7 @@
           <option value="ILS" ${f.live.currency==='ILS'?'selected':''}>ILS (₪)</option>
         </select>
       </td>
-      <td data-label="כמות יחידות"><input class="calib-w-num" type="number" step="1" data-role="qty" data-id="${f.id}" value="${f.qty}"></td>
+      <td data-label="כמות יחידות"><span class="num" data-out="qty-${f.id}">${f.qty}</span></td>
       <td data-label="יחס המרה"><input class="calib-w-num" type="number" step="0.001" data-role="ratio" data-id="${f.id}" value="${f.live.ratio}"></td>
       <td data-label="מחיר זר אחרון"><span class="num" data-out="foreign-${f.id}">-</span></td>
       <td data-label="מחיר בת&quot;א היום (לכיול)"><input class="calib-w-num" type="number" step="0.01" data-role="calibPrice" data-id="${f.id}"></td>
@@ -393,7 +427,60 @@
     calibBody.appendChild(tr);
   });
 
-  const investInput = document.getElementById('investAmount');
+  // ---- build "my portfolio" broker-style table ----
+  const myTableBody = document.getElementById('myTableBody');
+  funds.forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="שם נייר">${f.name}</td>
+      <td data-label="שער אחרון (₪)"><span class="num" data-my="price-${f.id}">-</span></td>
+      <td data-label="כמות בתיק"><input type="number" step="1" data-role="qty" data-id="${f.id}" value="${f.qty}"></td>
+      <td data-label="שווי אחזקה (₪)"><span class="num" data-my="value-${f.id}">-</span></td>
+      <td data-label="שינוי יומי %"><span class="num" data-my="dchgpct-${f.id}">-</span></td>
+      <td data-label="שינוי יומי (₪)"><span class="num" data-my="dchg-${f.id}">-</span></td>
+      <td data-label="שער עלות (₪)"><input type="number" step="0.01" data-role="costPrice" data-id="${f.id}" value="${f.costPrice}"></td>
+      <td data-label="שינוי מעלות %"><span class="num" data-my="cchgpct-${f.id}">-</span></td>
+      <td data-label="שינוי מעלות (₪ ליחידה)"><span class="num" data-my="cchgunit-${f.id}">-</span></td>
+      <td data-label="שינוי מעלות (₪)"><span class="num" data-my="cchgtot-${f.id}">-</span></td>
+      <td data-label="נתח מהתיק"><span class="num" data-my="share-${f.id}">-</span></td>
+      <td data-label="כמות מושאלת"><span class="num">0</span></td>
+    `;
+    myTableBody.appendChild(tr);
+  });
+
+  function renderMyTable(totalCurrent) {
+    funds.forEach(f => {
+      const price = f.live ? f.live.estPrice : (f.qty > 0 ? f.value / f.qty : null);
+      const dChgPct = f.live ? f.live.changePercent : null;
+      const dChg = f.live ? f.live.changeILS : null;
+      const cChgPct = (price != null && f.costPrice > 0) ? ((price - f.costPrice) / f.costPrice) * 100 : null;
+      const cChgUnit = (price != null) ? (price - f.costPrice) : null;
+      const cChgTot = (cChgUnit != null) ? cChgUnit * f.qty : null;
+      const share = totalCurrent > 0 ? (f.value / totalCurrent) * 100 : 0;
+
+      const setNum = (key, val, isPctColor) => {
+        const el = document.querySelector(`[data-my="${key}-${f.id}"]`);
+        if (!el) return;
+        el.textContent = val;
+        el.classList.remove('up', 'down');
+        if (isPctColor === 'up') el.classList.add('up');
+        if (isPctColor === 'down') el.classList.add('down');
+      };
+
+      const out = document.querySelector(`[data-out="qty-${f.id}"]`);
+      if (out) out.textContent = f.qty;
+      setNum('price', price != null ? price.toFixed(2) : '-');
+      setNum('value', fmt(f.value));
+      setNum('dchgpct', dChgPct != null ? dChgPct.toFixed(2) + '%' : '-', dChgPct > 0 ? 'up' : dChgPct < 0 ? 'down' : null);
+      setNum('dchg', dChg != null ? fmt(dChg) : '-', dChg > 0 ? 'up' : dChg < 0 ? 'down' : null);
+      setNum('cchgpct', cChgPct != null ? cChgPct.toFixed(2) + '%' : '-', cChgPct > 0 ? 'up' : cChgPct < 0 ? 'down' : null);
+      setNum('cchgunit', cChgUnit != null ? cChgUnit.toFixed(2) : '-', cChgUnit > 0 ? 'up' : cChgUnit < 0 ? 'down' : null);
+      setNum('cchgtot', cChgTot != null ? fmt(cChgTot) : '-', cChgTot > 0 ? 'up' : cChgTot < 0 ? 'down' : null);
+      setNum('share', fmtPct(share));
+    });
+  }
+
+
   const barNow = document.getElementById('barNow');
   const barAfter = document.getElementById('barAfter');
   const weightHint = document.getElementById('weightHint');
@@ -430,13 +517,26 @@
     });
     document.querySelectorAll('[data-role="qty"]').forEach(inp => {
       const f = funds.find(x => x.id === inp.dataset.id);
+      if (!f) return;
       const v = parseFloat(inp.value);
-      if (f) f.qty = isFinite(v) ? v : 0;
+      if (!isFinite(v)) return;
+      const unitPrice = (f.live && f.live.estPrice != null) ? f.live.estPrice : (f.qty > 0 ? f.value / f.qty : null);
+      f.qty = v;
+      if (unitPrice != null) {
+        f.value = unitPrice * v;
+        const valInput = document.querySelector(`[data-role="value"][data-id="${f.id}"]`);
+        if (valInput) valInput.value = Math.round(f.value * 100) / 100;
+      }
     });
     document.querySelectorAll('[data-role="ratio"]').forEach(inp => {
       const f = funds.find(x => x.id === inp.dataset.id);
       const v = parseFloat(inp.value);
       if (f && f.live) f.live.ratio = isFinite(v) ? v : f.live.ratio;
+    });
+    document.querySelectorAll('[data-role="costPrice"]').forEach(inp => {
+      const f = funds.find(x => x.id === inp.dataset.id);
+      const v = parseFloat(inp.value);
+      if (f) f.costPrice = isFinite(v) && v >= 0 ? v : f.costPrice;
     });
   }
 
@@ -496,6 +596,7 @@
     const afterPcts = funds.map((f, i) => totalAfter > 0 ? ((f.value + investArr[i]) / totalAfter) * 100 : 0);
     renderBar(barNow, nowPcts);
     renderBar(barAfter, afterPcts);
+    renderMyTable(totalCurrent);
     saveSettings();
   }
 
@@ -509,7 +610,12 @@
     if (data['Error Message']) throw new Error('שגיאה עבור ' + ticker + ': ' + data['Error Message']);
     const q = data['Global Quote'];
     if (!q || !q['05. price']) throw new Error('לא התקבל מחיר עבור ' + ticker);
-    return { price: parseFloat(q['05. price']), day: q['07. latest trading day'] };
+    return {
+      price: parseFloat(q['05. price']),
+      day: q['07. latest trading day'],
+      change: parseFloat(q['09. change']),
+      changePercent: q['10. change percent'] ? parseFloat(q['10. change percent'].replace('%', '')) : null
+    };
   }
 
   async function fetchFxRate(from, to, apiKey) {
@@ -546,7 +652,10 @@
         const q = await fetchGlobalQuote(f.live.tickerForeign, apiKey);
         f.live.lastPrice = q.price;
         f.live.lastDay = q.day;
+        f.live.changePercent = q.changePercent;
         const estPriceILS = q.price * fxRates[f.live.currency] * f.live.ratio;
+        f.live.estPrice = estPriceILS;
+        f.live.changeILS = q.change * fxRates[f.live.currency] * f.live.ratio;
         f.value = estPriceILS * f.qty;
         const inp = document.querySelector(`[data-role="value"][data-id="${f.id}"]`);
         if (inp) inp.value = Math.round(f.value * 100) / 100;
@@ -587,7 +696,7 @@
   }
 
   document.addEventListener('input', (e) => {
-    if (e.target.matches('[data-role="value"], [data-role="weight"], [data-role="qty"], [data-role="ratio"], [data-role="ticker"]') || e.target === investInput) {
+    if (e.target.matches('[data-role="value"], [data-role="weight"], [data-role="qty"], [data-role="ratio"], [data-role="ticker"], [data-role="costPrice"]') || e.target === investInput) {
       recalc();
     }
   });
