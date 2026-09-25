@@ -414,7 +414,6 @@
         <select class="calib-w-cur" data-role="currency" data-id="${f.id}">
           <option value="EUR" ${f.live.currency==='EUR'?'selected':''}>EUR</option>
           <option value="USD" ${f.live.currency==='USD'?'selected':''}>USD</option>
-          <option value="GBP" ${f.live.currency==='GBP'?'selected':''}>GBP</option>
           <option value="ILS" ${f.live.currency==='ILS'?'selected':''}>ILS (₪)</option>
         </select>
       </td>
@@ -481,6 +480,7 @@
   }
 
 
+  const investInput = document.getElementById('investAmount');
   const barNow = document.getElementById('barNow');
   const barAfter = document.getElementById('barAfter');
   const weightHint = document.getElementById('weightHint');
